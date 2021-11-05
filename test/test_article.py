@@ -1,71 +1,78 @@
 import unittest
-from unittest.mock import MagicMock
+from unittest.mock import MagicMock, Mock
 from app import Article
 
 class TestArticle(unittest.TestCase):
     def setUp(self):
-        self.test_db_articles = ['article_1', 'article_2', 'article_3']
-        self.db_articles = Article()
-        self.output = self.db_articles.get()
-        self.output_not_found = self.db_articles.get(4) # a random index but that is not contained in the test_db_articles Array.
+        self.output_expected = ['article_1', 'article_2', 'article_3']
+        self.setup_articles = self.setupArticle(self.output_expected)
+        self.setup_empty_articles = self.setupArticle()
         self.test_error_message = {'error': 'not found'}
-
-    def test_get_articles(self):
-        self.assertCountEqual(self.output, self.test_db_articles)
-
-    def test_get_articles_fail(self):
-        test_db_articles = ['one', 2, {'id': 1}, 2]
-        
-        self.assertNotEqual(self.output, test_db_articles)
-
-    def test_get_article(self):
-        test_db_article = 'article_1'
-        output = self.db_articles.get(0)
-
-        self.assertEqual(output, test_db_article)
-
-    def test_get_article_fail(self):
-        test_db_article = 'article_1'
-
-        self.assertNotEqual(self.output_not_found, test_db_article)
     
-    def test_errorMessage(self):
-        self.test_error_message = {'error': 'not found'}
-        output = self.db_articles.errorMessage()
+    def setupArticle(self, db = []):
+        articles = Article(db)
+        return articles
 
-        self.assertEqual(output, self.test_error_message)
+    def test_get(self):
+        output = self.setup_articles.get()
 
-    def test_errorMessage_tobe_called(self):
-        self.db_articles.errorMessage = MagicMock()
-        self.db_articles.get(4) # article_id 4 doesn't exist
-        self.db_articles.errorMessage.assert_called_once()
+        self.assertCountEqual(output, self.output_expected)
+    
+    def test_get_all_articles(self):
+        self.setup_empty_articles.getAll = MagicMock()
 
-    def test_errorMessage_not_tobe_called(self):
-        self.db_articles.errorMessage = MagicMock()
-        self.db_articles.get(1) # article_id 1 does exist
-        self.db_articles.errorMessage.assert_not_called()
+        self.setup_empty_articles.get()
+
+        self.setup_empty_articles.getAll.assert_called_once_with([])
+
+    def test_get_all_articles_length_major_10(self):
+        # articles length > 10
+        limit_articles_number = 10
+        articles = ['test', 'test', 'test', 412, 12, 12, 1, {}, [], 'test', 'test', 'test']
+        setup_article = self.setupArticle(articles)
+
+        get_all_result = setup_article.getAll(articles)
+        result_length = len(get_all_result)
+        
+        self.assertEqual(result_length, limit_articles_number)
+
+    def test_get_all_articles_length_minor_10(self):
+        setup_article = self.setupArticle(self.output_expected)
+        articles_length = len(self.output_expected)
+        
+        get_all_result = setup_article.getAll(self.output_expected)
+        result_length = len(get_all_result)
+        
+        self.assertEqual(result_length, articles_length)
+
+    def test_get_article_by_id(self):
+        test_article = 'article_1'
+        result = self.setupArticle(self.output_expected)
+        expected_article = result.get(0)
+
+        self.assertEqual(test_article, expected_article)
+
+    def test_errormessage(self):
+        expected = self.test_error_message
+        output = self.setup_empty_articles.errorMessage()
+
+        self.assertEqual(output, expected)
+
+    def test_errormessage_tobe_called(self):
+        self.setup_empty_articles.errorMessage = MagicMock()
+        articles = self.setup_empty_articles.get()
+        outside_articles_length = len(articles) + 1
+
+        self.setup_empty_articles.get(outside_articles_length)
+
+        self.setup_empty_articles.errorMessage.assert_called_once()
+
+    def test_errormessage_not_tobe_called(self):
+        self.setup_articles.errorMessage = MagicMock()
+
+        self.setup_articles.get(1)
+        
+        self.setup_articles.errorMessage.assert_not_called()
 
 if __name__ == '__main__':
     unittest.main()
-
-
-
-
-
-
-
-
-
-
-# # 
-# class FirstTestClass(unittest.TestCase):
-#     def test_upper(self):
-#         # Arrange
-#         test_string = "test"
-        
-#         # Act
-#         output = test_string.upper()
-        
-#         # Assert
-#         self.assertEqual(output, 'TSEST')
-        
