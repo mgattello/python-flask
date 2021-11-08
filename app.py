@@ -1,12 +1,8 @@
 from flask import Flask
-from flask_restful import Resource, Api, reqparse
+from flask_restful import Resource, Api
 
 app = Flask(__name__)
 api = Api(app)
-
-
-parser = reqparse.RequestParser()
-parser.add_argument('task')
 
 class HelloWorld(Resource):
     def get(self):

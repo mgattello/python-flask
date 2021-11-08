@@ -75,9 +75,5 @@ class TestArticle(unittest.TestCase):
         
         self.setup_articles.errorMessage.assert_not_called()
 
-    # [{id: 1, title: '', body: '', timestamp: ''}]
-    def test_post_article(self):
-        pass
-
 if __name__ == '__main__':
     unittest.main()
