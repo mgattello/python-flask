@@ -14,28 +14,23 @@ class Article(Resource):
 
     def get(self, article_id = 'all'):
         if article_id == 'all':
-            return self.getAll(self.db)
+            return self.getAll()
         try:
             return self.db[article_id]
         except IndexError:
             return self.errorMessage()
     
-    def getAll(self, db_articles = [], limit = 10):
-        self.db_articles = db_articles
-        self.limit = limit
-
-        if len(self.db_articles) > limit:
-            split_result = self.db_articles[:limit]
+    def getAll(self, limit = 10):   
+        if len(self.db) > limit:
+            split_result = self.db[:limit]
             return split_result
-
-        return self.db_articles
-
-    # def limit_get_result(self):
+        return self.db
 
     def errorMessage(self):
         return {'error': 'not found'}
 
 api.add_resource(HelloWorld, '/')
+api.add_resource(Article, '/articles')
 
 if __name__ == '__main__':
-    app.run()  # run our Flask app
+    app.run(debug=True)

@@ -19,11 +19,12 @@ class TestArticle(unittest.TestCase):
         self.assertCountEqual(output, self.output_expected)
     
     def test_get_all_articles(self):
-        self.setup_empty_articles.getAll = MagicMock()
+        setup_empty_articles = self.setupArticle()
+        setup_empty_articles.getAll = MagicMock()
 
-        self.setup_empty_articles.get()
+        setup_empty_articles.get()
 
-        self.setup_empty_articles.getAll.assert_called_once_with([])
+        setup_empty_articles.getAll.assert_called()
 
     def test_get_all_articles_length_major_10(self):
         # articles length > 10
@@ -31,7 +32,7 @@ class TestArticle(unittest.TestCase):
         articles = ['test', 'test', 'test', 412, 12, 12, 1, {}, [], 'test', 'test', 'test']
         setup_article = self.setupArticle(articles)
 
-        get_all_result = setup_article.getAll(articles)
+        get_all_result = setup_article.getAll()
         result_length = len(get_all_result)
         
         self.assertEqual(result_length, limit_articles_number)
@@ -40,7 +41,7 @@ class TestArticle(unittest.TestCase):
         setup_article = self.setupArticle(self.output_expected)
         articles_length = len(self.output_expected)
         
-        get_all_result = setup_article.getAll(self.output_expected)
+        get_all_result = setup_article.getAll()
         result_length = len(get_all_result)
         
         self.assertEqual(result_length, articles_length)
