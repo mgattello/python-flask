@@ -97,3 +97,29 @@ Install project dependencies:
 ```
 pip install -r requirements.txt
 ```
+
+### Create Server
+
+Initialise the server:
+
+```
+python
+>>> from server import db, User
+>>> db.create_all()
+```
+
+Create user for DB:
+
+```
+python
+>>> <name> = User(username='<name>', email='<email>')
+>>> db.session.add(<name>)
+>>> db.session.commit()
+```
+
+How to query the User table?
+
+```
+User.query.all()
+User.query.filter_by(username='<name>').first()
+```
