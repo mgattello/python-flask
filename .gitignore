@@ -1,6 +1,9 @@
 # Mac stuff:
 .DS_Store
 
+# VS CODE
+.vscode
+
 # Byte-compiled / optimized / DLL files
 __pycache__/
 *.py[cod]
@@ -84,8 +87,8 @@ ENV/
 env.bak/
 venv.bak/
 
-# Server
-tmp/
+# Database
+db.sqlite
 
 # mkdocs documentation
 /site
