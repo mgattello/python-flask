@@ -105,3 +105,9 @@ Initialise the server:
 ```
 python server.py
 ```
+
+### Run test
+
+```
+pytest -p no:warnings
+```

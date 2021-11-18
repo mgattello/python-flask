@@ -1,6 +1,7 @@
 import unittest
+from unittest import mock
 from unittest.mock import MagicMock
-from app import Article
+from src.app import Article
 
 class TestArticle(unittest.TestCase):
     def setUp(self):
@@ -13,75 +14,126 @@ class TestArticle(unittest.TestCase):
         articles = Article(db)
         return articles
 
-    def test_get(self):
-        output = self.setup_articles.get()
+    def mockSQLAlchemyDBMethods(self):
+        articles = self.setup_articles
 
-        self.assertCountEqual(output, self.output_expected)
-    
-    def test_get_all_articles(self):
-        setup_empty_articles = self.setupArticle()
-        setup_empty_articles.getAll = MagicMock()
-
-        setup_empty_articles.get()
-
-        setup_empty_articles.getAll.assert_called()
-
-    def test_get_all_articles_length_major_10(self):
-        # articles length > 10
-        limit_articles_number = 10
-        articles = ['test', 'test', 'test', 412, 12, 12, 1, {}, [], 'test', 'test', 'test']
-        result_length = len(Article(articles).getAll())
-
-        self.assertEqual(result_length, limit_articles_number)
-
-    def test_get_all_articles_length_minor_10(self):
-        setup_article = self.setupArticle(self.output_expected)
-        articles_length = len(self.output_expected)
-        result_length = len(setup_article.getAll())
+        articles._query = MagicMock()
+        articles._commit = MagicMock()
+        articles.delete = MagicMock()
+        articles.post = MagicMock()
+        articles.serialised = MagicMock()
         
-        self.assertEqual(result_length, articles_length)
-
-    def test_get_article_by_id(self):
-        test_article = 'article_1'
-        result = self.setupArticle(self.output_expected)
-        expected_article = result.get(0)
-
-        self.assertEqual(test_article, expected_article)
-
-    def test_errormessage(self):
-        expected = self.test_error_message
-        output = self.setup_empty_articles.errorMessage()
-
-        self.assertEqual(output, expected)
-
-    def test_errormessage_tobe_called(self):
-        self.setup_articles.errorMessage = MagicMock()
-        outside_articles_length = len(self.setup_articles.get()) + 1
-
-        self.setup_articles.get(outside_articles_length)
-
-        self.setup_articles.errorMessage.assert_called_once()
-
-    def test_errormessage_not_tobe_called(self):
-        self.setup_articles.errorMessage = MagicMock()
-
-        self.setup_articles.get(1)
-        
-        self.setup_articles.errorMessage.assert_not_called()
+        return articles
     
-    def test_post_article(self):
-        article_id = 1
-        article_title = 'Test'
-        article_body = 'this is my article'
-        expected = {
-            'id': 1,
-            'title': 'Test',
-            'body': 'this is my article'
-        }
+    def mockArticleMethods(self):
+        articles = self.setup_articles
 
-        output = self.setup_articles.post(article_id, article_title, article_body)
+        articles.read = MagicMock()
+        articles.create = MagicMock()
+        articles.cancel = MagicMock()
+        articles.errorMessage = MagicMock()
 
-        self.assertEqual(output, expected)
+        return articles
+    
+    def test_read(self):
+        output = self.setup_articles.read()
+        print(output)
+
+    def test_query_to_be_called_with_read(self):
+        articles = Article(self.output_expected)
+        articles._query = MagicMock()
+        articles.read()
+
+        articles._query.assert_called_once()
+    
+    def test_query_not_to_spill_methods(self):
+        mockedClass = self.mockSQLAlchemyDBMethods()
+        
+        mockedClass.read()
+        
+        mockedClass._commit.assert_not_called()
+        mockedClass.post.assert_not_called()
+        mockedClass.delete.assert_not_called()
+
+    def test_post_not_to_spill_methods(self):
+        mockedClass = self.mockSQLAlchemyDBMethods()
+
+        mockedClass.post()
+
+        mockedClass._query.assert_not_called()
+        mockedClass.delete.assert_not_called()
+
+    def test_delete_not_to_spill_methods(self):
+        mockedClass = self.mockSQLAlchemyDBMethods()
+        
+        mockedClass.delete()
+
+        mockedClass._query.assert_not_called()
+        mockedClass.post.assert_not_called()
+
+    def test_serialised_not_to_spill_methods(self):
+        mockedClass = self.mockSQLAlchemyDBMethods()
+
+        mockedClass.serialised('TestModel', 'TestSchema')
+
+        mockedClass._query.assert_not_called()
+        mockedClass._commit.assert_not_called()
+        mockedClass.post.assert_not_called()
+        mockedClass.delete.assert_not_called()
+
+    def test_post_to_be_called_with_create(self):
+        mockedClass = self.mockSQLAlchemyDBMethods()
+
+        mockedClass.create('TestTitle', 'TestBody')
+
+        mockedClass.post.assert_called_once()
+
+    def test_delete_to_be_called_with_cancel(self):
+        mockedClass = self.mockSQLAlchemyDBMethods()
+
+        mockedClass.cancel('TestQuery')
+
+        mockedClass.delete.assert_called_once()
+    
+    def test_read__not_to_spill_methods(self):
+        mockedClass = self.mockArticleMethods()
+
+        mockedClass.read()
+
+        mockedClass.read.assert_called_once()
+        mockedClass.create.assert_not_called()
+        mockedClass.cancel.assert_not_called()
+        mockedClass.errorMessage.assert_not_called()
+
+    def test_create__not_to_spill_methods(self):
+        mockedClass = self.mockArticleMethods()
+
+        mockedClass.create()
+
+        mockedClass.read.assert_not_called()
+        mockedClass.create.assert_called_once()
+        mockedClass.cancel.assert_not_called()
+        mockedClass.errorMessage.assert_not_called()
+
+    def test_cancel__not_to_spill_methods(self):
+        mockedClass = self.mockArticleMethods()
+
+        mockedClass.cancel()
+
+        mockedClass.read.assert_not_called()
+        mockedClass.create.assert_not_called()
+        mockedClass.cancel.assert_called_once()
+        mockedClass.errorMessage.assert_not_called()
+
+    def test_errorMessage__not_to_spill_methods(self):
+        mockedClass = self.mockArticleMethods()
+
+        mockedClass.errorMessage()
+
+        mockedClass.read.assert_not_called()
+        mockedClass.create.assert_not_called()
+        mockedClass.cancel.assert_not_called()
+        mockedClass.errorMessage.assert_called_once()
 
 if __name__ == '__main__':
     unittest.main()
