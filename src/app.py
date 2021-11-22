@@ -69,10 +69,6 @@ class SQLAlchemyDB():
     def serialised(self, model, schema):
         return schema.dumps(model)
 
-class HelloWorld():
-    def get(self):
-        return 'Hello World!'
-
 class Article(SQLAlchemyDB):
     def __init__(self, db = []):
         super(Article, self).__init__(db)
